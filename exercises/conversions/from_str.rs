@@ -12,6 +12,8 @@
 use std::num::ParseIntError;
 use std::str::FromStr;
 
+use crate::ParsePersonError::BadLen;
+
 #[derive(Debug, PartialEq)]
 struct Person {
     name: String,
@@ -30,8 +32,6 @@ enum ParsePersonError {
     // Wrapped error from parse::<usize>()
     ParseInt(ParseIntError),
 }
-
-// I AM NOT DONE
 
 // Steps:
 // 1. If the length of the provided string is 0, an error should be returned
@@ -52,6 +52,27 @@ enum ParsePersonError {
 impl FromStr for Person {
     type Err = ParsePersonError;
     fn from_str(s: &str) -> Result<Person, Self::Err> {
+        if s.is_empty() {
+            return Err(ParsePersonError::Empty);
+        }
+        let vals: Vec<&str> = s.split(",").collect();
+
+        if vals.len() != 2 {
+            return Err(ParsePersonError::BadLen);
+        }
+
+        if vals[0].is_empty() {
+            return Err(ParsePersonError::NoName);
+        }
+
+        let age = vals[1]
+            .parse::<usize>()
+            .map_err(ParsePersonError::ParseInt)?;
+
+        Ok(Person {
+            name: vals[0].to_string(),
+            age,
+        })
     }
 }
 
